@@ -27,23 +27,25 @@ app.post('/users', (request, response) => {
   const isUsernameTaken = users.some((users)=>username==users.username)
 
   if(!isUsernameTaken) {
-    users.push({ 
+    const user = 
+    { 
       id: uuidv4(), 
       name: name, 
       username: username, 
       todos: []
-    })
-    return response.status(201).json("Usuário criado")
+    };
+    users.push(user);
+    return response.status(201).json(user);
   }
   else {
-    return response.status(401).json("usuário já existente")
+    return response.status(400).json({error: "usuário já existente"})
   }
 });
 
 app.get('/todos', checksExistsUserAccount, (request, response) => {
   let {username} = request.headers
   let todos = users.find((users)=>users.username===username).todos
-  return response.send(todos)
+  return response.send(todos);
 });
 
 app.post('/todos', checksExistsUserAccount, (request, response) => {
@@ -52,14 +54,14 @@ app.post('/todos', checksExistsUserAccount, (request, response) => {
   let data = new Date();
   let id = uuidv4();
   let responseObj = {
-    "id":id,
-    "title":title,
-    "done":false,
-    "deadline":new Date(deadline),
-    "created_at":data  
+    id:id,
+    title:title,
+    done:false,
+    deadline:new Date(deadline),
+    created_at:data  
   }
   users.find((users)=>users.username===username).todos.push(responseObj);
-  return response.json(responseObj)
+  return response.status(201).json(responseObj);
 });
 
 app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
@@ -76,7 +78,7 @@ app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
     todo.title = title;
     title.deadline = new Date(deadline);
 
-    return response.json(todo);
+    return response.json(todo).status(201);
   }
 });
 
@@ -88,8 +90,8 @@ app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
     return response.status(404).json({ error: "Todo não encontrada"});
   }
   else {
-    todo.done = "True";
-    return response.json(todo);
+    todo.done = true;
+    return response.json(todo).status(201);
   }
 });
 
